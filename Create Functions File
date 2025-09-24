@@ -1,5 +1,5 @@
 $mycode = @'
-# Define the function with parameters to make it reusable
+# Function Set AD Password
 function Set-RemoteADPassword {
     [CmdletBinding()]
     param(
@@ -31,18 +31,22 @@ function Set-RemoteADPassword {
         Set-ADAccountPassword -Identity $User -Reset -NewPassword $securePassword -ErrorAction Stop
     }
 
-    # Use a try/catch block for robust error handling
+    # Use a try/catch block for error handling
     try {
-        # Use Invoke-Command for non-interactive scripting on a remote machine
-        # The $using: scope modifier passes local variables to the remote session
         Invoke-Command -ComputerName $DomainController -ScriptBlock $scriptBlock -ArgumentList $Identity, $NewPassword
         
         Write-Host "✅ Password for user '$Identity' has been changed successfully on '$DomainController'." -ForegroundColor Green
     }
     catch {
-        # This block runs if any errors occurred in the 'try' block
         Write-Error "❌ Failed to change password for user '$Identity'. Error: $_"
     }
+}
+
+# Download File
+Function Download-File($url, $path) {
+    Write-Verbose -Message "downloading url '$url' to '$path'"
+    $client = New-Object -TypeName System.Net.WebClient
+    $client.DownloadFile($url, $path)
 }
 '@
 $newdir = "${env:USERPROFILE}\Documents\Powershell\Modules\functions"
