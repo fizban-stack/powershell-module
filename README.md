@@ -1,1 +1,7 @@
 The content of this file can be pasted directly into PowerShell to provide access to the functions included.  I know there are prebuilt modules that perform many of these tasks, but I wanted to create functions that remove as much friction as possible for a sysadmin.
+
+## Functions 
+
+Set-ADPassword
+
+Download-File
