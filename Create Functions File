@@ -1,0 +1,50 @@
+$mycode = @'
+# Define the function with parameters to make it reusable
+function Set-RemoteADPassword {
+    [CmdletBinding()]
+    param(
+        # The username of the account to change
+        [Parameter(Mandatory=$true)]
+        [string]$Identity,
+
+        # The new password for the account
+        [Parameter(Mandatory=$true)]
+        [string]$NewPassword,
+
+        # The fully qualified domain name of the Domain Controller
+        [Parameter(Mandatory=$true)]
+        [string]$DomainController
+    )
+
+    # Define the script block to be executed on the remote computer
+    $scriptBlock = {
+        # Use param() to accept arguments inside the script block
+        param($User, $Password)
+
+        # Import the Active Directory module if it's not already loaded
+        Import-Module ActiveDirectory
+
+        # Convert the plaintext password to a SecureString for the command
+        $securePassword = ConvertTo-SecureString -String $Password -AsPlainText -Force
+
+        # Set the password and use -ErrorAction Stop to trigger the catch block on failure
+        Set-ADAccountPassword -Identity $User -Reset -NewPassword $securePassword -ErrorAction Stop
+    }
+
+    # Use a try/catch block for robust error handling
+    try {
+        # Use Invoke-Command for non-interactive scripting on a remote machine
+        # The $using: scope modifier passes local variables to the remote session
+        Invoke-Command -ComputerName $DomainController -ScriptBlock $scriptBlock -ArgumentList $Identity, $NewPassword
+        
+        Write-Host "✅ Password for user '$Identity' has been changed successfully on '$DomainController'." -ForegroundColor Green
+    }
+    catch {
+        # This block runs if any errors occurred in the 'try' block
+        Write-Error "❌ Failed to change password for user '$Identity'. Error: $_"
+    }
+}
+'@
+$newdir = "${env:USERPROFILE}\Documents\Powershell\Modules\functions"
+mkdir $newdir -Force
+Set-Content -Path "$newdir\functions.psm1" -Value $mycode
